@@ -1,7 +1,7 @@
 # Deep Neural Network Modelling of Endemic Measles Dynamics in Post-Vaccination Settings
 
 **MSc Thesis — IIT Bombay, Department of Mathematics**
-**Student:** Einstein (Roll No. 24N0269)
+**Student:** Brian Wanzama (Roll No. 24N0269)
 **Supervisor:** Prof. Siuli Mukhopadhyay
 **Year:** 2026
 
@@ -9,7 +9,7 @@
 
 ## About This Project
 
-This project models endemic measles transmission in West Bengal, India, focusing on South Twenty-Four Parganas district, using biweekly reported case data from 2008 to 2019. The post-vaccination period creates a challenging setting for mechanistic models: the susceptible pool is substantially depleted and seasonally flatter than in pre-vaccination settings, which affects whether physics-informed neural networks can identify seasonal transmission parameters.
+This project models endemic measles transmission in West Bengal, India, focusing on South Twenty-Four Parganas district using biweekly reported case data from 2008 to 2019. The post-vaccination period creates a challenging setting for mechanistic models: the susceptible pool is substantially depleted and seasonally flatter than in pre-vaccination settings which affects whether physics-informed neural networks can identify seasonal transmission parameters.
 
 We compare four modelling approaches across a 34-biweek forecasting horizon:
 
@@ -18,34 +18,11 @@ We compare four modelling approaches across a 34-biweek forecasting horizon:
 - **NaivePINN v3** — Physics-informed neural network with a freely-learned latent susceptible
 - **TSIR-PINN v3** — Physics-informed neural network soft-constrained onto the TSIR susceptible reconstruction
 
-The central finding is that constraining the PINN to the TSIR susceptible reconstruction — which is seasonally flat in this post-vaccination setting — prevents the model from identifying seasonal transmission parameters. The freely-learned NaivePINN recovers a seasonally-structured susceptible series and forecasts more accurately.
+The central finding is that constraining the PINN to the TSIR susceptible reconstruction  which is seasonally flat in this post-vaccination setting prevents the model from identifying seasonal transmission parameters. The freely-learned NaivePINN recovers a seasonally-structured susceptible series and forecasts more accurately.
 
 This extends the methodology of Madden et al. (2024) to a post-vaccination setting and identifies a setting in which the mechanistic susceptible constraint switches from helping to harming.
 
 ---
-
-## Results Summary
-
-Test period: 2017–2019, k = 34 biweek forecast horizon, South Twenty-Four Parganas
-
-| Model | Median RMSE | Beats TSIR V1V2 |
-|-------|-------------|-----------------|
-| SFNN | 15.7 | 100 / 100 runs |
-| **NaivePINN v3** | **29.2** | **64 / 100 runs** |
-| TSIR V1V2 | 33.0 | baseline |
-| TSIR-PINN (unconstrained) | 38.8 | 0 / 100 runs |
-| TSIR-PINN (constrained) | 52.3 | 12 / 100 runs |
-
-**S_latent diagnostics (NaivePINN):**
-
-| Statistic | Value |
-|-----------|-------|
-| S_latent mean | 271,774 |
-| S_obs mean (TSIR) | 240,617 |
-| S_pred / S_obs ratio (TSIR-PINN) | 0.987 |
-| S_latent seasonal amplitude | 90.1% of mean |
-| corr(S_latent seasonal, I seasonal) | 0.46 |
-| corr(S_latent 26-wk cycle, TSIR-PINN residual) | 0.51 |
 
 **Counterfactual (17 districts):** Two-dose vaccination averted an estimated 2,640 measles cases (15.4%) over the study period, ranging from 1.6% to 58.2% across districts.
 
@@ -59,27 +36,38 @@ Msc_project/
 ├── code/
 │   ├── R/
 │   │   ├── 01_data_prep/
-│   │   │   ├── wb_data_prep.R
+│   │   │   |
 │   │   │   ├── tsir_wb_process_V1V2.R
 │   │   │   ├── tsir_wb_run_V1V2.R
-│   │   │   └── tsir_susceptibles_gen_V1V2.R
+│   │   │   ├── tsir_susceptibles_gen_V1V2.R
+│   │   │   ├── optimal_basic_nn_process.R     # post-process SFNN runs
+│   │   │   └── cases_process.R                # reported-cases processing
 │   │   │
 │   │   ├── 02_figures/
-│   │   │   ├── wb_city_rmse_pub.R
+│   │   │   ├── optimal_compare_plots.R        # Fig 2: SFNN vs TSIR
+│   │   │   |
 │   │   │   ├── wb_city_performance_plot.R
+│   │   │   ├── wb_population_rmse.R           # was "Population plots rmse.R"
+│   │   │   ├── wb_sfnn_feature_importance.R
 │   │   │   ├── wb_pinn_final_analysis.R
 │   │   │   ├── wb_pinn_constrained_analysis.R
 │   │   │   ├── wb_pinn_sweep_fig.R
-│   │   │   ├── wb_s_latent_fig.R
-│   │   │   └── optimal_compare_plots.R
+│   │   │   └── wb_s_latent_fig.R
 │   │   │
 │   │   └── 03_counterfactual/
 │   │       ├── counterfactual_plot_V1V2.R
 │   │       ├── wb_tsir_counterfactual_V1V2.R
 │   │       ├── wb_counterfactual_all_cities.R
-│   │       └── wb_counterfactual_uncertainty.R
+│   │     
 │   │
 │   └── python/
+│       ├── basic_nn/
+│       │   ├── plotting/
+│       │   │   └── gen_plot.sh  # Fig 1: network architecture
+|       |   |--Meascles_Prevac_Loader           
+│       │   ├── full_basic_raytune.sh         # SFNN hyperparameter search
+│       │   └── full_basic_optimal.sh         # SFNN fit (optimal HPs)
+│       │
 │       └── pinn_experiments/
 │           ├── wb_naivepinn_constrained_v3.py   # final NaivePINN
 │           ├── wb_tsirpinn_constrained_v3.py    # final TSIR-PINN
@@ -92,9 +80,12 @@ Msc_project/
 │   ├── wb_run_pinn_final.sh      # 100-run final PINN training
 │   └── wb_run_pinn_sweep.sh      # 300-run loss-weight sweep
 │
-├── output/                        # generated outputs — not in git
-├── experiments/                   # tables and figures — not in git
-├── Makefile                       # pipeline execution order
+├── output/                       # generated outputs — not in git
+│   ├── data/
+│   ├── models/
+│   └── figures/
+├── experiments/                  # tables and figures — 
+├── Makefile                      # pipeline execution order
 └── README.md
 ```
 
@@ -102,19 +93,13 @@ Msc_project/
 
 ## How to Run
 
-See the `Makefile` for the full ordered pipeline. The steps in order are:
+See the `Makefile` for the full ordered pipeline. The non-GPU stages can be built at once with:
 
-**Stage 1 — Data preparation**
 ```bash
-Rscript code/R/01_data_prep/wb_data_prep.R
+make all
 ```
 
-**Stage 2 — TSIR V1V2 reconstruction**
-```bash
-Rscript code/R/01_data_prep/tsir_wb_process_V1V2.R
-Rscript code/R/01_data_prep/tsir_wb_run_V1V2.R
-Rscript code/R/01_data_prep/tsir_susceptibles_gen_V1V2.R
-```
+### Pipeline critical information
 
 **Stage 3 — SFNN (100 runs)**
 ```bash
@@ -143,18 +128,62 @@ conda activate finalmlenv
 python code/python/pinn_experiments/wb_collect_sweep_results.py
 python code/python/pinn_experiments/wb_extract_s_latent.py
 ```
-
-**Stage 7 — Figures**
+**Stage 7 — Figures** (see the figure targets below)
 ```bash
+make createfig1 createfig2
 Rscript code/R/02_figures/wb_pinn_sweep_fig.R
 Rscript code/R/02_figures/wb_s_latent_fig.R
 Rscript code/R/02_figures/wb_city_rmse_pub.R
 Rscript code/R/03_counterfactual/wb_counterfactual_all_cities.R
 ```
 
-Or run all non-GPU stages at once:
-```bash
-make all
+---
+
+## Figure Targets
+
+Each thesis figure maps to a single script or `make` target.
+
+| Figure | Script / target | Output |
+|--------|-----------------|--------|
+| **Fig 1** — Feedforward network architecture | `make createfig1` | `output/figures/feedforward_network_structure.png` |
+| **Fig 2** — SFNN vs TSIR RMSE (reg. & gain, faceted by *k*) | `make createfig2` | `output/figures/rmse_reg_and_gain_nn_tsir_k_facet.png` |
+| PINN loss-weight sweep | `wb_pinn_sweep_fig.R` | `output/figures/` |
+| Latent susceptible (S_latent) | `wb_s_latent_fig.R` | `output/figures/` |
+| City RMSE (publication) | `wb_city_rmse_pub.R` | `output/figures/` |
+| City performance | `wb_city_performance_plot.R` | `output/figures/` |
+| Population RMSE | `wb_population_rmse.R` | `output/figures/` |
+| SFNN feature importance | `wb_sfnn_feature_importance.R` | `output/figures/` |
+| PINN final analysis | `wb_pinn_final_analysis.R` | `output/figures/` |
+| PINN constrained analysis | `wb_pinn_constrained_analysis.R` | `output/figures/` |
+| Counterfactual (all cities) | `wb_counterfactual_all_cities.R` | `output/figures/` |
+
+### `createfig1` — network architecture
+
+```makefile
+# Fig 1: output/figures/feedforward_network_structure.png
+createfig1:
+	mkdir -p output/figures
+	cd code/python/basic_nn/plotting && ./gen_plot.sh
+```
+
+### `createfig2` — SFNN vs TSIR
+
+```makefile
+# Fig 2: output/figures/rmse_reg_and_gain_nn_tsir_k_facet.png
+createfig2:
+	# 1. TSIR reconstruction
+	mkdir -p output/data/tsir/wb/raw output/data/tsir/wb/processed output/data/tsir_susceptibles
+	cd code/R/01_data_prep && Rscript tsir_wb_run_V1V2.R
+	cd code/R/01_data_prep && Rscript tsir_wb_process_V1V2.R
+	cd code/R/01_data_prep && Rscript tsir_susceptibles_gen_V1V2.R
+	# 2. SFNN hyperparameter search + fit
+	mkdir -p output/data/basic_nn_optimal/raytune_hp_optim output/models/basic_nn_optimal
+	cd code/python/basic_nn && ./full_basic_raytune.sh
+	cd code/python/basic_nn && ./full_basic_optimal.sh
+	# 3. Post-process + plot
+	cd code/R/01_data_prep && Rscript optimal_basic_nn_process.R
+	cd code/R/01_data_prep && Rscript cases_process.R
+	cd code/R/02_figures && Rscript optimal_compare_plots.R
 ```
 
 ---
