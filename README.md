@@ -18,41 +18,6 @@ The central research questions are:
  4. Can we quantitatively decompose the impact of MCV1 and MCV2 on measles case reduction at the district level?
 ---
 
-## Key Results
-
-### Forecast accuracy — South Twenty-Four Parganas, k = 34 biweek horizon
-
-| Model | Median RMSE | Beats TSIR V1V2 |
-|-------|-------------|-----------------|
-| SFNN | 15.7 | 100 / 100 runs |
-| **NaivePINN v3** | **29.2** | **64 / 100 runs** |
-| TSIR V1V2 | 33.0 | baseline |
-| TSIR-PINN (unconstrained) | 38.8 | 0 / 100 runs |
-| TSIR-PINN (constrained, BETA_MAX=31.6) | 52.3 | 12 / 100 runs |
-
-### Counterfactual vaccination impact — 17 West Bengal districts
-
-| Statistic | Value |
-|-----------|-------|
-| Observed cases (study period) | 14,528 |
-| Estimated no-vaccination counterfactual | 17,168 |
-| Cases averted by MCV1 + MCV2 | 2,640 |
-| Percentage reduction | 15.4% |
-| Range across districts | 1.6% – 58.2% |
-| Median across districts | 15.0% |
-
-### NaivePINN susceptible diagnostics
-
-| Statistic | Value |
-|-----------|-------|
-| S_latent mean (NaivePINN) | 271,774 |
-| S_obs mean (TSIR reconstruction) | 240,617 |
-| S_pred / S_obs (TSIR-PINN) | 0.987 |
-| S_latent seasonal amplitude | 90.1% of mean |
-| corr(S_latent seasonal, I seasonal) | 0.46 |
-| corr(S_latent 26-wk cycle, TSIR-PINN residual) | 0.51 |
-
----
 
 ## Repository Structure
 
@@ -212,27 +177,6 @@ devtools::install_github("adbuckner/tsiR")
 - CUDA GPU required for Stages 6 and 7
 - Tested on NVIDIA RTX A5000 (24 GB VRAM)
 - Stages 6 and 7 each take approximately 5 days on a single GPU
-
----
-
-## Important Notes
-
-**Two susceptible reconstructions.** The TSIR model uses the raw tsiR output (S̄ = 132,952 for South Twenty-Four Parganas). The PINN feature file uses a separately preprocessed susceptible series (S̄ = 240,617). β_eq = N/S̄ = 35.07 is computed from the PINN feature file since the gradient instability analysis concerns PINN training dynamics.
-
-**Constrained TSIR-PINN ceiling.** The constrained TSIR-PINN runs producing RMSE = 52.3 used BETA_MAX = 31.6 — 10.5% below the correct β_eq = 35.07. This is a documented limitation; the ceiling should be set to β_eq for correct operation.
-
-**Counterfactual uncertainty.** The progressive uncertainty analysis for the counterfactual estimates was not run. Results reported are point estimates from the TSIR V1V2 reconstruction.
-
-**Single district for PINN analysis.** PINN results are for South Twenty-Four Parganas only. Generalisability across the S̄/Ī range of West Bengal districts is an open question.
-
----
-
-## Limitations
-
-1. PINN analysis covers a single district — generalisability untested
-2. The association between S_latent's seasonal structure and NaivePINN's accuracy is demonstrated (r = 0.51); causation requires a progressive-relaxation experiment not run here
-3. Constrained TSIR-PINN ceiling set below β_eq — RMSE 52.3 partly reflects misconfiguration
-4. Counterfactual estimates are point estimates — uncertainty bounds not computed
 
 ---
 
